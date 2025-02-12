@@ -1,5 +1,4 @@
 easyconfigs:
-  - EasyBuild-4.9.3.eb:
   - EasyBuild-4.9.4.eb:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/21465
