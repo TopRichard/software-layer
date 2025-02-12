@@ -14,6 +14,10 @@ cpu_arch_subdir=$3
 accel_subdir=$4
 target_tgz=$5
 
+echo "create_tarball.sh: TMPDIR='${TMPDIR}'"
+if [[ ! -z ${TMPDIR} ]]; then
+    ls -l ${TMPDIR}
+fi
 tmpdir=`mktemp -d`
 echo ">> tmpdir: $tmpdir"
 

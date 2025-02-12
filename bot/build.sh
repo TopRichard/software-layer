@@ -93,7 +93,19 @@ fi
 echo -n "setting \$STORAGE by replacing any var in '${LOCAL_TMP}' -> "
 # replace any env variable in ${LOCAL_TMP} with its
 #   current value (e.g., a value that is local to the job)
-STORAGE=$(envsubst <<< ${LOCAL_TMP})
+#STORAGE=$(envsubst <<< ${LOCAL_TMP})
+# We should have set TMPDIR via $LOCAL_TMP already in the bot's slurm script.
+# To be sure, we test if TMPDIR is set and simply use that, otherwise we expand
+# it here.
+if [[ -n ${TMPDIR} && -d ${TMPDIR} ]]; then
+    # TMPDIR defined and directory exists
+    STORAGE=${TMPDIR}
+else
+    if [[ -z ${TMPDIR} ]]; then
+        # TMPDIR not defined
+        STORAGE=$(envsubst <<< ${LOCAL_TMP})
+    fi
+fi
 echo "'${STORAGE}'"
 
 # make sure ${STORAGE} exists
