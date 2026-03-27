@@ -46,16 +46,20 @@ jobs:
       - name: Detect changed EESSI version(s) in PR
         id: detect
         run: |
+          # Get changed files from GitHub Actions context (only for pull requests)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-              # Get changed files from GitHub Actions context
-              changed_files=$(jq -r '.changed_files | join("\n")' <<< '${{ toJson(github.event.pull_request.changed_files) }}')
+              changed_files="${{ join(github.event.pull_request.changed_files, '\n') }}"
               echo "Changed files in PR:"
               echo "$changed_files"
               echo ""
+          else
+              changed_files=""
           fi
           
           # Run the detection script
-          detected_versions=$(bash .github/workflows/scripts/detect_changed_eessi_version.sh "" "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")
+          # For PRs, use base.sha; for other events, use the current commit
+          base_sha="${{ github.event.pull_request.base.sha || github.sha }}"
+          detected_versions=$(bash .github/workflows/scripts/detect_changed_eessi_version.sh "$changed_files" "$base_sha" "${{ github.sha }}")
           
           echo "Detected EESSI version(s):"
           echo "$detected_versions"
