@@ -17,9 +17,15 @@ EESSI_VERSIONS=("2023.06" "2025.06")
 DETECTED_VERSIONS=()
 
 if [ -n "$CHANGED_FILES" ]; then
-    # Changed files are passed as argument (comma-separated or newline-separated)
-    # Convert to array
-    IFS=$'\n' read -r -d '' -a files_array <<< "$CHANGED_FILES" || true
+    # Changed files are passed as argument (newline-separated from GitHub Actions join())
+    # GitHub Actions join() with '\n' produces actual newlines
+    # Use a more robust parsing approach
+    files_array=()
+    while IFS= read -r file; do
+        if [ -n "$file" ]; then
+            files_array+=("$file")
+        fi
+    done <<< "$CHANGED_FILES"
 elif [ -n "$BASE_COMMIT" ] && [ -n "$HEAD_COMMIT" ]; then
     # Use git diff to get changed files between commits
     IFS=$'\n' read -r -d '' -a files_array <<< "$(git diff --name-only "$BASE_COMMIT" "$HEAD_COMMIT")" || true
