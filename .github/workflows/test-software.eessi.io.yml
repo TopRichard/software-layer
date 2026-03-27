@@ -161,7 +161,7 @@ jobs:
             EESSI_VERSION: 2025.06
             EESSI_SOFTWARE_SUBDIR_OVERRIDE: x86_64/generic
     # Only run this job if the matrix's EESSI_VERSION is in the detected versions
-    if: ${{ github.event_name != 'pull_request' || contains(needs.detect_eessi_version.outputs.detected_versions, matrix.EESSI_VERSION) }}
+    if: ${{ github.event_name != 'pull_request' || contains(toJSON(needs.detect_eessi_version.outputs.detected_versions), toJSON(matrix.EESSI_VERSION)) }}
     runs-on: ${{ matrix.runs_on }}
     steps:
       - name: Check out software-layer repository
@@ -188,7 +188,7 @@ jobs:
             cvmfs_http_proxy: DIRECT
             cvmfs_repositories: software.eessi.io
 
-      - name: Check for missing installlations
+      - name: Check for missing installations
         run: |
             export EESSI_SOFTWARE_SUBDIR_OVERRIDE=${{matrix.EESSI_SOFTWARE_SUBDIR_OVERRIDE}}
             source /cvmfs/software.eessi.io/versions/${{matrix.EESSI_VERSION}}/init/bash
