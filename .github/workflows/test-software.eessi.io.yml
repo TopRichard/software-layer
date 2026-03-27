@@ -126,12 +126,37 @@ jobs:
           - runs_on: ubuntu-24.04
             EESSI_VERSION: 2025.06
             EESSI_SOFTWARE_SUBDIR_OVERRIDE: x86_64/generic
+    # Only run this job if the matrix's EESSI_VERSION is in the detected versions
+    if: ${{ github.event_name != 'pull_request' || contains(steps.detect_eessi_version.outputs.detected_versions, matrix.EESSI_VERSION) }}
     runs-on: ${{ matrix.runs_on }}
     steps:
         - name: Check out software-layer repository
           uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
           with:
               fetch-depth: 0  # Fetch all history for all branches and tags
+
+        - name: Detect changed EESSI version(s) in PR
+          id: detect_eessi_version
+          run: |
+              if [ "${{ github.event_name }}" == "pull_request" ]; then
+                  # Get changed files from GitHub Actions context
+                  changed_files=$(jq -r '.changed_files | join("\n")' <<< '${{ toJson(github.event.pull_request.changed_files) }}')
+                  echo "Changed files in PR:"
+                  echo "$changed_files"
+                  echo ""
+              fi
+              
+              # Run the detection script
+              detected_versions=$(bash .github/workflows/scripts/detect_changed_eessi_version.sh "" "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")
+              
+              echo "Detected EESSI version(s):"
+              echo "$detected_versions"
+              echo ""
+              
+              # Store detected versions as newline-separated list in output
+              echo "detected_versions<<EOF" >> $GITHUB_OUTPUT
+              echo "$detected_versions" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
 
         - name: Clone EESSI/software-layer-scripts repository
           run: |
