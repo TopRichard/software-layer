@@ -48,7 +48,8 @@ jobs:
         run: |
           # Get changed files from GitHub Actions context (only for pull requests)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-              changed_files="${{ join(github.event.pull_request.changed_files, '\n') }}"
+              # Use jq to properly parse the changed_files array from GitHub event
+              changed_files=$(jq -r '.pull_request.changed_files[]' "$GITHUB_EVENT_PATH" 2>/dev/null || echo "")
               echo "Changed files in PR:"
               echo "$changed_files"
               echo ""

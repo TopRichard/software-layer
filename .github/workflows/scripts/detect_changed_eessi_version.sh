@@ -18,10 +18,14 @@ DETECTED_VERSIONS=()
 
 if [ -n "$CHANGED_FILES" ]; then
     # Changed files are passed as argument (newline-separated from GitHub Actions join())
-    # GitHub Actions join() with '\n' produces actual newlines
-    # Use a more robust parsing approach
+    # Handle both actual newlines and literal \n strings
+    # First, convert literal \n to actual newlines if needed
+    CHANGED_FILES=$(echo "$CHANGED_FILES" | sed 's/\\n/\n/g')
+    
     files_array=()
     while IFS= read -r file; do
+        # Trim whitespace and skip empty lines
+        file=$(echo "$file" | tr -d '[:space:]')
         if [ -n "$file" ]; then
             files_array+=("$file")
         fi
@@ -32,10 +36,22 @@ elif [ -n "$BASE_COMMIT" ] && [ -n "$HEAD_COMMIT" ]; then
 else
     # Try to use GitHub Actions context
     if [ -n "$GITHUB_EVENT_PATH" ]; then
-        # Extract changed files from the pull_request event
-        CHANGED_FILES_JSON=$(cat "$GITHUB_EVENT_PATH" | grep -o '"changed_files"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
-        if [ -n "$CHANGED_FILES_JSON" ]; then
-            IFS=$'\n' read -r -d '' -a files_array <<< "$CHANGED_FILES_JSON" || true
+        # Extract changed files from the pull_request event using jq if available
+        if command -v jq &> /dev/null; then
+            CHANGED_FILES_JSON=$(jq -r '.changed_files // empty' "$GITHUB_EVENT_PATH" 2>/dev/null)
+            if [ -n "$CHANGED_FILES_JSON" ]; then
+                while IFS= read -r file; do
+                    if [ -n "$file" ]; then
+                        files_array+=("$file")
+                    fi
+                done <<< "$CHANGED_FILES_JSON"
+            fi
+        else
+            # Fallback to grep-based parsing
+            CHANGED_FILES_JSON=$(cat "$GITHUB_EVENT_PATH" | grep -o '"changed_files"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
+            if [ -n "$CHANGED_FILES_JSON" ]; then
+                IFS=$'\n' read -r -d '' -a files_array <<< "$CHANGED_FILES_JSON" || true
+            fi
         fi
     fi
 fi
