@@ -69,12 +69,6 @@ for file in "${files_array[@]}"; do
 done
 
 # Output detected versions
-if [ ${#DETECTED_VERSIONS[@]} -eq 0 ]; then
-    # No EESSI version files changed, output both versions to maintain current behavior
-    echo "2023.06"
-    echo "2025.06"
-else
-    for version in "${DETECTED_VERSIONS[@]}"; do
-        echo "$version"
-    done
-fi
+for version in "${DETECTED_VERSIONS[@]}"; do
+    echo "$version"
+done
