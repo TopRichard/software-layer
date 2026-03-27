@@ -18,3 +18,7 @@ easyconfigs:
   # - framework PR for fix: https://github.com/easybuilders/easybuild-framework/pull/5142
   # - triggered by https://github.com/easybuilders/easybuild-easyblocks/pull/3993
   - jupyterlmod-5.2.2-GCCcore-13.3.0.eb
+  - PyTorch-2.9.1-foss-2024a.eb:
+      options:
+        # See PR https://github.com/easybuilders/easybuild-easyconfigs/pull/25492
+        from-commit: 5c3c03b3a7d1bd769b7032e352595885c0a4b12d
