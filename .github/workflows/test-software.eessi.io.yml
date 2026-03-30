@@ -44,26 +44,27 @@ jobs:
           fetch-depth: 0  # Fetch all history for all branches and tags
 
       - name: Detect EESSI Versions
-      - id: detect
+        id: detect
         run: |
-          # Get filenames changed between the PR branch and its base (e.g., main)
-          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-          echo "files changed in the PR=$changed_files"
+          # Use base_ref and head_ref for more reliable diffing in PRs
+          # Ensure you have checked out with fetch-depth: 0
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }})
+          echo "Files changed: $changed_files"
           
-          # Default to both EESSI versions if no specific match is found
+          # Default to both versions
           EESSI_VERSIONS='["2023.06", "2025.06"]'
           
-          # Check for specific versions
-          if echo "$CHANGED_FILES" | grep -q "easystacks/software.eessi.io/2023.06"; then
+          # Check for specific versions in the multi-line string
+          if echo "$changed_files" | grep -q "easystacks/software.eessi.io/2023.06"; then
             EESSI_VERSIONS='["2023.06"]'
-          elif echo "$CHANGED_FILES" | grep -q "easystacks/software.eessi.io/2025.06"; then
+          elif echo "$changed_files" | grep -q "easystacks/software.eessi.io/2025.06"; then
             EESSI_VERSIONS='["2025.06"]'
           fi
           
-          # Store detected versions as newline-separated list in output         
-          echo "EESSI_VERSIONS<<EOF" >> $GITHUB_OUTPUT
-          echo "$EESSI_VERSIONS >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Use GITHUB_OUTPUT heredoc correctly
+          echo "EESSI_VERSIONS<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$EESSI_VERSIONS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
   check_missing:
     needs: check_EESSI_version_changed_files
