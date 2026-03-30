@@ -52,7 +52,7 @@ jobs:
           echo "Files changed: $changed_files"
 
           # Default to both versions
-          EESSI_VERSIONS='["2023.06", "2025.06"]'
+          EESSI_VERSIONS=""
           
           # Check for specific versions in the changed easystack files
           if echo "$changed_files" | grep -q "easystacks/software.eessi.io/2023.06"; then
