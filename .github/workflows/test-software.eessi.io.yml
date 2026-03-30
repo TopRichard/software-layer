@@ -38,22 +38,17 @@ jobs:
     outputs:
       EESSI_VERSIONS: ${{ steps.detect.outputs.EESSI_VERSIONS }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Check out software-layer repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          fetch-depth: 0
-
-      - name: Get changed files (PR)
-        run: |
-          git fetch origin ${{ github.base_ref }}
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-          echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          fetch-depth: 0  # Fetch all history for all branches and tags
 
       - name: Detect EESSI Versions
       - id: detect
         run: |
-          # Detect changed files
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          # Get filenames changed between the PR branch and its base (e.g., main)
+          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          echo "files changed in the PR=$changed_files"
           
           # Default to both EESSI versions if no specific match is found
           EESSI_VERSIONS='["2023.06", "2025.06"]'
