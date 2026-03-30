@@ -50,7 +50,7 @@ jobs:
           # Ensure you have checked out with fetch-depth: 0
           changed_files=$(git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }})
           echo "Files changed: $changed_files"
-          
+
           # Default to both versions
           EESSI_VERSIONS='["2023.06", "2025.06"]'
           
@@ -60,7 +60,8 @@ jobs:
           elif echo "$changed_files" | grep -q "easystacks/software.eessi.io/2025.06"; then
             EESSI_VERSIONS='["2025.06"]'
           fi
-          
+          echo "PR changes related to EESSI VERSION: $EESSI_VERSIONS"
+
           # Use GITHUB_OUTPUT heredoc correctly
           echo "EESSI_VERSIONS<<EOF" >> "$GITHUB_OUTPUT"
           echo "$EESSI_VERSIONS" >> "$GITHUB_OUTPUT"
