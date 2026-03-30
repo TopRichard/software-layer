@@ -33,7 +33,45 @@ env:
       # and then allow for special cases for specific architectures
       aarch64/a64fx: []
 jobs:
+  check_EESSI_version_changed_files:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files (PR)
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
+      - name: Detect Versions
+        id: set-matrix
+        run: |
+          # Detect changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # Default to both EESSI versions if no specific match is found
+          EESSI_VERSIONS='["2023.06", "2025.06"]'
+          
+          # Check for specific versions
+          if echo "$CHANGED_FILES" | grep -q "easystacks/software.eessi.io/2023.06"; then
+            EESSI_VERSIONS='["2023.06"]'
+          elif echo "$CHANGED_FILES" | grep -q "easystacks/software.eessi.io/2025.06"; then
+            EESSI_VERSIONS='["2025.06"]'
+          fi
+          
+          # Store detected versions as newline-separated list in output         
+          echo "EESSI_VERSIONS<<EOF" >> $GITHUB_OUTPUT
+          echo "$EESSI_VERSIONS >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
   check_missing:
+    needs: check_EESSI_version_changed_files
     strategy:
       fail-fast: false
       matrix:
@@ -153,6 +191,7 @@ jobs:
               cvmfs_repositories: software.eessi.io
 
         - name: Check for missing installlations
+          if: ${{ github.event_name != 'pull_request' || contains(needs.check_EESSI_version_changed_files.outputs.EESSI_VERSIONS, matrix.EESSI_VERSION) }}
           run: |
               export EESSI_SOFTWARE_SUBDIR_OVERRIDE=${{matrix.EESSI_SOFTWARE_SUBDIR_OVERRIDE}}
               source /cvmfs/software.eessi.io/versions/${{matrix.EESSI_VERSION}}/init/bash
