@@ -36,7 +36,7 @@ jobs:
   check_EESSI_version_changed_files:
     runs-on: ubuntu-24.04
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      EESSI_VERSIONS: ${{ steps.detect.outputs.EESSI_VERSIONS }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,8 +49,8 @@ jobs:
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-      - name: Detect Versions
-        id: set-matrix
+      - name: Detect EESSI Versions
+      - id: detect
         run: |
           # Detect changed files
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
