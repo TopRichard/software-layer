@@ -1,4 +1,4 @@
-# Software layer
+# SSoftware layer
 
 The software layer of the EESSI project uses [EasyBuild](https://docs.easybuild.io), [Lmod](https://lmod.readthedocs.io) and [archspec](https://archspec.readthedocs.io).
 
